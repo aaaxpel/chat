@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat!</title>
+</head>
+<body>
+    <div id="count"></div>
+
+    <form id="form">
+        <input type="text" id="input">
+        <button type="submit">Send</button>
+    </form>
+
+    <div id="output">
+
+    </div>
+</body>
+</html>
+
+<script>
+    window.addEventListener("load", function(event) {
+        let input = document.getElementById("input")
+        let output = document.getElementById("output")
+
+        let ws
+
+        ws = new WebSocket("{{.}}")
+
+        ws.onopen = (event) => {
+            print("OPEN")
+        }
+        ws.onclose = (event) => {
+            print("CLOSE")
+            ws = null
+        }
+        ws.onmessage = (event) => {
+            let message = JSON.parse(event.data)
+            
+            if (message.Group == "chat") {
+                print("RESPONSE: " + message.Content)
+            } else if (message.Group == "count") {
+                updateCount(message.Content)
+            }
+        }
+        ws.onerror = (event) => {
+            print("ERROR: " + event.data)
+        }
+
+        document.getElementById("form").onsubmit = (event) => {
+            if (!ws) {
+                event.preventDefault()
+            }
+            print("SEND: " + input.value)
+            ws.send(input.value)
+            event.preventDefault()
+        }
+    })
+    
+    function print(message) {
+        let d = document.createElement("div")
+        d.textContent = message
+        output.appendChild(d)
+        output.scroll(0, output.scrollHeight)
+    }
+
+    function updateCount(count) {
+        document.getElementById("count").textContent = count
+    }
+
+    
+</script>
